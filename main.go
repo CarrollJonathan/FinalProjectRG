@@ -12,6 +12,8 @@ import (
 	"embed"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -61,12 +63,17 @@ func main() {
 		}))
 		router.Use(gin.Recovery())
 
+		dbPort, err := strconv.Atoi(os.Getenv("PGPORT"))
+		if err != nil {
+			panic(err)
+		}
+
 		dbCredential := model.Credential{
-			Host:         "localhost",
-			Username:     "postgres",
-			Password:     "postgres",
-			DatabaseName: "database_rg",
-			Port:         5432,
+			Host:         os.Getenv("PGHOST"),
+			Username:     os.Getenv("PGUSER"),
+			Password:     os.Getenv("PGPASSWORD"),
+			DatabaseName: os.Getenv("PGDATABASE"),
+			Port:         dbPort,
 			Schema:       "public",
 		}
 
@@ -81,7 +88,7 @@ func main() {
 		router = RunClient(conn, router, Resources)
 
 		fmt.Println("Server is running on port 8080")
-		err = router.Run(":8080")
+		err = router.Run()
 		if err != nil {
 			panic(err)
 		}
